@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  api-tests:
+    build: .
+    container_name: api_testing_restassured
+    volumes:
+      # Mount the target folder to access test results (including Allure reports) locally
+      - ./target:/app/target
