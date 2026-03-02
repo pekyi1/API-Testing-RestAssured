@@ -18,16 +18,16 @@
         <junit.jupiter.version>5.10.3</junit.jupiter.version>
         <allure.junit5.version>2.29.0</allure.junit5.version>
         <allure.maven.version>2.16.1</allure.maven.version>
+        <jackson.version>2.17.1</jackson.version>
         <baseUrl>https://jsonplaceholder.typicode.com</baseUrl>
     </properties>
 
     <dependencies>
-        <!-- REST Assured -->
+        <!-- REST Assured (compile scope – used by services in src/main) -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>${restassured.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- JSON Schema validation -->
@@ -36,6 +36,13 @@
             <artifactId>json-schema-validator</artifactId>
             <version>${restassured.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- Jackson for POJO serialisation / TestDataUtils -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- JUnit 5 -->
@@ -50,6 +57,22 @@
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-junit5</artifactId>
+            <version>${allure.junit5.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit Platform Suite for running Test Suites -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>1.10.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Allure REST Assured integration (attaches request/response to report) -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-rest-assured</artifactId>
             <version>${allure.junit5.version}</version>
             <scope>test</scope>
         </dependency>
