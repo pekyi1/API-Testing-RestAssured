@@ -14,12 +14,6 @@ public class BaseConfig {
 
     private static final Properties properties = new Properties();
 
-    /**
-     * Returns the base URL, giving priority to:
-     * 1. System property (mvn test -DbaseUrl=...)
-     * 2. config.properties value
-     * 3. Hard-coded default
-     */
     public static String getBaseUrl() {
         return System.getProperty("baseUrl",
                 properties.getProperty("base.url", "https://jsonplaceholder.typicode.com"));

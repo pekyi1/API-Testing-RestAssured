@@ -5,23 +5,27 @@ on:
     branches:
       - main
       - develop
-      - 'fix/**'
-      - 'feature/**'
+      - "fix/**"
+      - "feature/**"
   pull_request:
     branches:
       - main
       - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   api-tests:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
+      # 1. Checkout code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Java + Maven cache
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -33,13 +37,13 @@ jobs:
         run: |
           echo "Testing URL: ${{ secrets.APP_BASE_URL }}"
 
+      # 3. Build docker image
       - name: Build Docker Image
         run: docker build -t api-tests-restassured .
 
+      # 4. Run tests inside docker (do not fail the whole job yet; we still want reports + notifications)
       - name: Run API tests in Docker
         run: |
-          # Use docker to run the tests, mounting the host's target directory to container's /app/target
-          # This allows the host runner to access the generated Surefire/Allure reports.
           docker run \
             --name test-container \
             -v ${{ github.workspace }}/target:/app/target \
@@ -48,11 +52,9 @@ jobs:
 
       - name: Fix Target Directory Permissions
         if: always()
-        run: sudo chown -R $(id -u):$(id -g) target/
+        run: sudo chown -R $(id -u):$(id -g) target/ || true
 
-      # Human-friendly summary in GitHub Actions logs (non-technical)
-      # NOTE: This step will show ❌ if there are failures/errors (by exiting 1),
-      # but it still prints the readable summary first.
+      # 5. Human-friendly summary (keeps your current behavior)
       - name: Test summary (Readable logs)
         if: always()
         run: |
@@ -107,30 +109,24 @@ jobs:
           else:
             for (name, kind, msg) in failed_tests:
               icon = "❌" if kind == "FAIL" else "⚠️"
-              
-              # Clean up message for "reasons"
               clean_msg = msg.replace("failures)", "reasons)")
-              # Strip exception class names for cleaner output
               clean_msg = re.sub(r'org\.opentest4j\.AssertionFailedError: ', '', clean_msg)
-              
+
               lines = clean_msg.splitlines()
               short = "\n".join(lines[:6])
               if len(lines) > 6: short += "\n  ..."
-              
+
               formatted_reason = short.replace("\n", "\n  ")
               print(f"- {name} ({icon} {kind})")
               print(f"  Reason: {formatted_reason}")
 
           print("==================================")
 
-          # Make this STEP show ❌ when tests failed
           if failed > 0 or errors > 0:
             sys.exit(1)
           PY
 
-      # Build Slack payload:
-      # - totals (total, passed, failed, errors, skipped)
-      # - ONLY failed/error tests listed with plain reasons
+      # 6. Build Slack + Email payload (your existing logic)
       - name: Build Slack payload (only failed tests + totals)
         if: always()
         run: |
@@ -140,7 +136,7 @@ jobs:
           files = glob.glob("target/surefire-reports/TEST-*.xml")
 
           total = failed = errors = skipped = 0
-          failed_items = []  # (name, kind, reason)
+          failed_items = []
 
           repo = os.environ.get("GITHUB_REPOSITORY", "")
           branch = os.environ.get("GITHUB_REF_NAME", "")
@@ -155,6 +151,8 @@ jobs:
             )
             with open("slack_payload.json", "w", encoding="utf-8") as f:
               json.dump({"text": text}, f)
+            with open("email_body.txt", "w", encoding="utf-8") as f:
+              f.write(text.replace("*", ""))
             raise SystemExit(0)
 
           for fpath in files:
@@ -171,12 +169,8 @@ jobs:
 
               if failure is not None:
                 msg = (failure.attrib.get("message") or "").strip()
-                
-                # Replace "failures)" with "reasons)"
                 clean_msg = msg.replace("failures)", "reasons)")
-                # Remove class names for cleaner output
                 clean_msg = re.sub(r'org\.opentest4j\.AssertionFailedError: ', '', clean_msg)
-                
                 lines = clean_msg.splitlines()
                 short = "\n".join(lines[:6])
                 if len(lines) > 6: short += "\n..."
@@ -184,11 +178,8 @@ jobs:
 
               if error is not None:
                 msg = (error.attrib.get("message") or "").strip()
-                
-                # Clean up error messages too
                 clean_msg = msg.replace("failures)", "reasons)")
                 clean_msg = re.sub(r'org\.opentest4j\.AssertionFailedError: ', '', clean_msg)
-                
                 lines = clean_msg.splitlines()
                 short = "\n".join(lines[:6])
                 if len(lines) > 6: short += "\n..."
@@ -207,7 +198,7 @@ jobs:
             MAX_SHOW = 12
             for (name, kind, reason) in failed_items[:MAX_SHOW]:
               lines.append(f"• *{name}*")
-              lines.append(f"  {reason}") 
+              lines.append(f"  {reason}")
             if len(failed_items) > MAX_SHOW:
               lines.append(f"• …and {len(failed_items) - MAX_SHOW} more failed/error tests (see run for full list)")
           else:
@@ -220,7 +211,6 @@ jobs:
           with open("slack_payload.json", "w", encoding="utf-8") as f:
             json.dump({"text": "\n".join(lines)}, f)
 
-          # Also write a plain text version to reuse for email
           with open("email_body.txt", "w", encoding="utf-8") as f:
             f.write("\n".join([
               f"API Tests: {status}",
@@ -242,7 +232,6 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      # Send Email (same content as Slack, plain-English)
       - name: Send Email report (only failed tests + totals)
         if: always()
         uses: dawidd6/action-send-mail@v3
@@ -257,22 +246,6 @@ jobs:
           secure: false
           body: file://email_body.txt
 
-      # Technical reports for evidence (prints only when failing)
-      - name: Print Surefire reports (on failure)
-        if: failure()
-        run: |
-          echo "=== Surefire Reports Directory ==="
-          ls -la target/surefire-reports || true
-
-          echo "=== Dumping Surefire .txt reports (test failures/errors) ==="
-          for f in target/surefire-reports/*.txt; do
-            if [ -f "$f" ]; then
-              echo "----- $f -----"
-              cat "$f"
-              echo
-            fi
-          done
-
       - name: Upload Surefire test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -280,6 +253,11 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports/**
 
+      # =========================
+      # ALLURE + GITHUB PAGES
+      # =========================
+
+      # 7. Pull previous gh-pages to preserve history
       - name: Load test report history
         if: always()
         uses: actions/checkout@v4
@@ -292,11 +270,14 @@ jobs:
         if: always()
         run: |
           mkdir -p target/allure-results/history
-          if [ -d "gh-pages/history" ]; then cp -r gh-pages/history/* target/allure-results/history/ || true; fi
+          if [ -d "gh-pages/history" ]; then
+            cp -r gh-pages/history/* target/allure-results/history/ || true
+          fi
 
+      # 8. Generate the HTML report
       - name: Build Allure Report
         if: always()
-        run: mvn allure:report
+        run: mvn -B allure:report
 
       - name: Upload Allure Report as Artifact
         if: always()
@@ -305,9 +286,32 @@ jobs:
           name: allure-report-web
           path: target/site/allure-maven-plugin/
 
-      - name: Prepare History for Next Run
+      # 9. Deploy report to gh-pages (this is Option A)
+      - name: Deploy Allure Report to GitHub Pages (gh-pages)
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: target/site/allure-maven-plugin
+          force_orphan: true
+
+      # 10. Save history at repo root on gh-pages for the next run
+      # (Allure history lives inside the generated report folder)
+      - name: Prepare history for next run
         if: always()
         run: |
-          mkdir -p allure-report-with-history
-          cp -r target/site/allure-maven-plugin/* allure-report-with-history/
-          cp -r target/site/allure-maven-plugin/history allure-report-with-history/ || true
+          mkdir -p _gh_pages_history_out
+          if [ -d "target/site/allure-maven-plugin/history" ]; then
+            cp -r target/site/allure-maven-plugin/history _gh_pages_history_out/history
+          fi
+
+      - name: Deploy history to GitHub Pages root
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: _gh_pages_history_out
+          destination_dir: .
+          keep_files: true
