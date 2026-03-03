@@ -1,45 +1,41 @@
 package Photos;
 
-import java.util.HashMap;
+import utils.TestDataUtils;
+
 import java.util.Map;
+
+import java.util.stream.Stream;
 
 /**
  * Provides test data for Photo-related API tests.
  */
 public class PhotoDataProvider {
 
-    public static Map<String, Object> createPhotoData(int albumId, String title, String url, String thumbnailUrl) {
-        Map<String, Object> photoData = new HashMap<>();
-        photoData.put("albumId", albumId);
-        photoData.put("title", title);
-        photoData.put("url", url);
-        photoData.put("thumbnailUrl", thumbnailUrl);
-        return photoData;
-    }
-
     public static Map<String, Object> defaultCreatePhotoData() {
-        return createPhotoData(1, "Test photo", "https://via.placeholder.com/600/92c952",
-                "https://via.placeholder.com/150/92c952");
+        return TestDataUtils.getTestData("photo.json");
     }
 
     public static Map<String, Object> defaultUpdatePhotoData() {
-        return createPhotoData(1, "Updated photo title", "https://via.placeholder.com/600/updated",
-                "https://via.placeholder.com/150/updated");
+        Map<String, Object> data = TestDataUtils.getTestData("photo.json");
+        data.put("title", "Updated photo title");
+        data.put("url", "https://via.placeholder.com/600/updated");
+        data.put("thumbnailUrl", "https://via.placeholder.com/150/updated");
+        return data;
     }
 
-    public static int getExistingPhotoId() {
-        return 1;
+    public static Stream<Integer> getExistingPhotoId() {
+        return Stream.of(1, 2, 3);
     }
 
-    public static int getPhotoIdToUpdate() {
-        return 1;
+    public static Stream<Integer> getPhotoIdToUpdate() {
+        return Stream.of(4, 5, 6);
     }
 
-    public static int getPhotoIdToDelete() {
-        return 1;
+    public static Stream<Integer> getPhotoIdToDelete() {
+        return Stream.of(7, 8, 9);
     }
 
-    public static int getAlbumIdForPhotos() {
-        return 1;
+    public static Stream<Integer> getAlbumIdForPhotos() {
+        return Stream.of(1, 2, 3);
     }
 }

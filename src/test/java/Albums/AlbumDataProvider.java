@@ -1,41 +1,56 @@
 package Albums;
 
-import java.util.HashMap;
+import utils.TestDataUtils;
+
 import java.util.Map;
+
+import java.util.stream.Stream;
 
 /**
  * Provides test data for Album-related API tests.
  */
 public class AlbumDataProvider {
 
-    public static Map<String, Object> createAlbumData(int userId, String title) {
-        Map<String, Object> albumData = new HashMap<>();
-        albumData.put("userId", userId);
-        albumData.put("title", title);
-        return albumData;
-    }
-
     public static Map<String, Object> defaultCreateAlbumData() {
-        return createAlbumData(1, "My new album");
+        return TestDataUtils.getTestData("album.json");
     }
 
     public static Map<String, Object> defaultUpdateAlbumData() {
-        return createAlbumData(1, "Updated album title");
+        Map<String, Object> data = TestDataUtils.getTestData("album.json");
+        data.put("title", "Updated album title");
+        return data;
     }
 
-    public static int getExistingAlbumId() {
-        return 1;
+    public static Stream<Integer> getExistingAlbumId() {
+        return Stream.of(1, 2, 3);
     }
 
-    public static int getAlbumIdToUpdate() {
-        return 1;
+    public static Stream<Integer> getAlbumIdToUpdate() {
+        return Stream.of(4, 5, 6);
     }
 
-    public static int getAlbumIdToDelete() {
-        return 1;
+    public static Stream<Integer> getAlbumIdToDelete() {
+        return Stream.of(7, 8, 9);
     }
 
-    public static int getAlbumIdForPhotos() {
-        return 1;
+    public static Stream<Integer> getAlbumIdForPhotos() {
+        return Stream.of(1, 2, 3);
+    }
+
+    // --- Data for Edge Cases / Negative Testing ---
+
+    /**
+     * Provides invalid IDs that do not exist or are malformed (e.g., negative, very
+     * large)
+     */
+    public static Stream<Integer> getInvalidAlbumIds() {
+        return Stream.of(-1, 0, 999999);
+    }
+
+    /** Provides data for an album missing the mandatory 'title' field */
+    public static Map<String, Object> albumDataMissingTitle() {
+        Map<String, Object> data = TestDataUtils.getTestData("album.json");
+        data.remove("title");
+        return data;
     }
 }

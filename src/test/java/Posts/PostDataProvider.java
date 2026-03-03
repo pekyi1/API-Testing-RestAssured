@@ -1,46 +1,44 @@
 package Posts;
 
-import java.util.HashMap;
+import utils.TestDataUtils;
+
 import java.util.Map;
+
+import java.util.stream.Stream;
 
 /**
  * Provides test data for Post-related API tests.
  */
 public class PostDataProvider {
 
-    public static Map<String, Object> createPostData(int userId, String title, String body) {
-        Map<String, Object> postData = new HashMap<>();
-        postData.put("userId", userId);
-        postData.put("title", title);
-        postData.put("body", body);
-        return postData;
-    }
-
     public static Map<String, Object> defaultCreatePostData() {
-        return createPostData(1, "foo", "bar");
+        return TestDataUtils.getTestData("post.json");
     }
 
     public static Map<String, Object> defaultUpdatePostData() {
-        return createPostData(1, "foo updated", "bar updated");
+        Map<String, Object> data = TestDataUtils.getTestData("post.json");
+        data.put("title", "foo updated");
+        data.put("body", "bar updated");
+        return data;
     }
 
     public static String patchPostData() {
         return "{\"title\": \"patched title\"}";
     }
 
-    public static int getExistingPostId() {
-        return 1;
+    public static Stream<Integer> getExistingPostId() {
+        return Stream.of(1, 2, 3);
     }
 
-    public static int getPostIdToUpdate() {
-        return 1;
+    public static Stream<Integer> getPostIdToUpdate() {
+        return Stream.of(4, 5, 6);
     }
 
-    public static int getPostIdToDelete() {
-        return 1;
+    public static Stream<Integer> getPostIdToDelete() {
+        return Stream.of(7, 8, 9);
     }
 
-    public static int getPostIdForComments() {
-        return 1;
+    public static Stream<Integer> getPostIdForComments() {
+        return Stream.of(1, 2, 3);
     }
 }

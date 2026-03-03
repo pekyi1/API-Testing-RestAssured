@@ -1,38 +1,35 @@
 package Users;
 
-import java.util.HashMap;
+import utils.TestDataUtils;
+
 import java.util.Map;
+
+import java.util.stream.Stream;
 
 /**
  * Provides test data for User-related API tests.
  */
 public class UserDataProvider {
 
-    public static Map<String, Object> createUserData(String name, String username, String email) {
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("name", name);
-        userData.put("username", username);
-        userData.put("email", email);
-        return userData;
-    }
-
     public static Map<String, Object> defaultCreateUserData() {
-        return createUserData("morpheus", "morpheus", "morpheus@example.com");
+        return TestDataUtils.getTestData("user.json");
     }
 
     public static Map<String, Object> defaultUpdateUserData() {
-        return createUserData("morpheus", "morpheus", "zion@example.com");
+        Map<String, Object> data = TestDataUtils.getTestData("user.json");
+        data.put("email", "zion@example.com");
+        return data;
     }
 
-    public static int getExistingUserId() {
-        return 1;
+    public static Stream<Integer> getExistingUserId() {
+        return Stream.of(1, 2, 3);
     }
 
-    public static int getUserIdToUpdate() {
-        return 2;
+    public static Stream<Integer> getUserIdToUpdate() {
+        return Stream.of(4, 5, 6);
     }
 
-    public static int getUserIdToDelete() {
-        return 2;
+    public static Stream<Integer> getUserIdToDelete() {
+        return Stream.of(7, 8, 9);
     }
 }

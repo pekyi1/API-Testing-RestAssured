@@ -1,38 +1,36 @@
 package Todos;
 
-import java.util.HashMap;
+import utils.TestDataUtils;
+
 import java.util.Map;
+
+import java.util.stream.Stream;
 
 /**
  * Provides test data for Todo-related API tests.
  */
 public class TodoDataProvider {
 
-    public static Map<String, Object> createTodoData(int userId, String title, boolean completed) {
-        Map<String, Object> todoData = new HashMap<>();
-        todoData.put("userId", userId);
-        todoData.put("title", title);
-        todoData.put("completed", completed);
-        return todoData;
-    }
-
     public static Map<String, Object> defaultCreateTodoData() {
-        return createTodoData(1, "Complete API testing lab", false);
+        return TestDataUtils.getTestData("todo.json");
     }
 
     public static Map<String, Object> defaultUpdateTodoData() {
-        return createTodoData(1, "Updated todo title", true);
+        Map<String, Object> data = TestDataUtils.getTestData("todo.json");
+        data.put("title", "Updated todo title");
+        data.put("completed", true);
+        return data;
     }
 
-    public static int getExistingTodoId() {
-        return 1;
+    public static Stream<Integer> getExistingTodoId() {
+        return Stream.of(1, 2, 3);
     }
 
-    public static int getTodoIdToUpdate() {
-        return 1;
+    public static Stream<Integer> getTodoIdToUpdate() {
+        return Stream.of(4, 5, 6);
     }
 
-    public static int getTodoIdToDelete() {
-        return 1;
+    public static Stream<Integer> getTodoIdToDelete() {
+        return Stream.of(7, 8, 9);
     }
 }

@@ -14,17 +14,6 @@ public class BaseConfig {
 
     private static final Properties properties = new Properties();
 
-//    static {
-//        try (InputStream input = BaseConfig.class.getClassLoader()
-//                .getResourceAsStream("config.properties")) {
-//            if (input != null) {
-//                properties.load(input);
-//            }
-//        } catch (Exception e) {
-//            System.err.println("Could not load config.properties: " + e.getMessage());
-//        }
-//    }
-
     /**
      * Returns the base URL, giving priority to:
      * 1. System property (mvn test -DbaseUrl=...)
