@@ -9,7 +9,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
  */
 @Suite
 @SuiteDisplayName("All API Tests Suite")
-@SelectPackages("tests")
+@SelectPackages({ "Users", "Posts", "Comments", "Todos", "Albums", "Photos" })
 public class TestSuite {
     // This class remains empty. It serves only as a holder for the above
     // annotations.

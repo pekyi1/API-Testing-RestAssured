@@ -9,4 +9,4 @@ COPY pom.xml .
 COPY src ./src
 
 # Default command to run the tests
-CMD ["mvn", "clean", "test"]
+CMD ["mvn", "test"]

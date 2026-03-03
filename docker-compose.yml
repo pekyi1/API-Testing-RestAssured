@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api-tests:
     build: .
@@ -7,3 +5,8 @@ services:
     volumes:
       # Mount the target folder to access test results (including Allure reports) locally
       - ./target:/app/target
+      # Cache Maven dependencies between runs to avoid re-downloading every time
+      - maven-repo:/root/.m2
+
+volumes:
+  maven-repo:
